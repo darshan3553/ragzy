@@ -1,0 +1,26 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Development and local files
+.env.local
+.env.*.local
+
+# Uploaded files directory (handle these separately in production)
+uploads/
+
+# Testing
+tests/
+*.test.py
+test_*.py
+
+# Development tools and IDE files 
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
