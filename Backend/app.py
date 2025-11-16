@@ -215,7 +215,6 @@ async def ask_question(question_data: Question):
     except Exception as e:
         logging.error(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/api/clear")
 async def clear_pdf():
     global pdf_chunks, pdf_index, pdf_filename
