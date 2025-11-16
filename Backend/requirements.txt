@@ -1,7 +1,9 @@
 fastapi
 uvicorn
+python-multipart
 PyPDF2
 faiss-cpu
 numpy
-openai
 together
+openai
+pydantic
