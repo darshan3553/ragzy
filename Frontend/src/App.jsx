@@ -107,8 +107,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 font-sans text-gray-800">
-      <style>
-        {`
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
 
@@ -154,7 +153,7 @@ export default function App() {
           right: 0;
           bottom: 0;
           height: var(--search-h);
-          z-index: 50;
+          z-index: 60; /* ensure above chat */
           background: rgba(255,255,255,0.98);
           border-top: 1px solid rgba(203,213,225,0.6);
           display: flex;
@@ -173,7 +172,7 @@ export default function App() {
 
         /* make sure mobile stacked uploader is above the chat, but search is still fixed */
         .mobile-uploader-space {
-          height: calc(var(--search-h) + 12px); /* small space so last messages not hidden */
+          height: calc(var(--search-h) + 12px); /* ensure space so last messages not hidden on mobile */
         }
 
         /* toast */
@@ -181,7 +180,7 @@ export default function App() {
           position: fixed;
           right: 16px;
           bottom: calc(var(--search-h) + 20px);
-          z-index: 60;
+          z-index: 70;
           min-width: 200px;
           max-width: 320px;
           padding: 10px 14px;
@@ -236,14 +235,14 @@ export default function App() {
           box-shadow: none;
         }
 
-        .search-fixed, .search-container { padding-left: 0px; padding-right: 04px; }
+        /* ensure no unexpected extra left/right padding on small viewports */
+        .search-fixed, .search-container { padding-left: 0px; padding-right: 0px; }
 
         /* help mobile keyboard: ensure focused input is scrolled into view */
         input:focus {
           scroll-margin-bottom: 260px;
         }
-      `}
-      </style>
+      `}</style>
 
       {/* Header */}
       <header
@@ -344,18 +343,22 @@ export default function App() {
           <div
             ref={chatScrollRef}
             className="bg-slate-50 p-8 custom-scrollbar chat-fixed-height"
-            style={{ paddingBottom: 16 }}
+            // IMPORTANT: paddingBottom must at least equal the search bar height so messages are never covered.
+            style={{ paddingBottom: "calc(var(--search-h) + 18px)" }}
           >
             <ChatBox messages={messages} isLoading={isLoading} />
 
-            {/* on mobile we add small spacer to avoid last message flush under things */}
+            {/* small spacer to avoid last message flush under things (keeps visual breathing room) */}
             <div style={{ height: 8 }} />
           </div>
+
+          {/* mobile-only spacer to ensure upload area + messages aren't hidden behind the fixed search on very small screens */}
+          <div className="md:hidden mobile-uploader-space" aria-hidden="true" />
         </div>
       </div>
 
       {/* SEARCH BAR fixed for both desktop & mobile */}
-      <div className="search-fixed">
+      <div className="search-fixed" role="region" aria-label="Search bar">
         <div className="max-w-4xl w-full mx-auto">
           <SearchBar
             onSearch={(msg) => addMessage(msg)}
@@ -452,20 +455,16 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading, setToast }) {
 }
 
 /* ----------------- Search Bar ----------------- */
-/* This SearchBar auto-focuses on mount, after sending and after response */
 function SearchBar({ onSearch, isLoading, setIsLoading }) {
   const [question, setQuestion] = useState("");
   const inputRef = useRef(null);
 
-  // Auto-focus when component mounts
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // If loading finishes, refocus (so cursor ready)
   useEffect(() => {
     if (!isLoading) {
-      // small timeout to avoid race with re-render
       const t = setTimeout(() => inputRef.current?.focus(), 50);
       return () => clearTimeout(t);
     }
@@ -475,10 +474,8 @@ function SearchBar({ onSearch, isLoading, setIsLoading }) {
     e && e.preventDefault();
     if (!question.trim() || isLoading) return;
 
-    // add the user's message immediately
     onSearch({ sender: "user", text: question, ts: new Date().toISOString() });
 
-    // clear input and refocus quickly
     const q = question;
     setQuestion("");
     inputRef.current?.focus();
@@ -496,7 +493,6 @@ function SearchBar({ onSearch, isLoading, setIsLoading }) {
       });
     } finally {
       setIsLoading(false);
-      // ensure the input regains focus after the response
       setTimeout(() => inputRef.current?.focus(), 30);
     }
   };
