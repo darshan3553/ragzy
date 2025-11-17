@@ -3,6 +3,7 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 console.log("API_URL:", API_URL);
+
 export default function App() {
   const [messages, setMessages] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -17,10 +18,7 @@ export default function App() {
     setUploadedFiles((prev) => [...prev, fileInfo]);
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    setUploadedFiles([]);
-  };
+  
 
   const removeFile = (index) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -62,18 +60,18 @@ export default function App() {
       {/* Header */}
       <header className="w-full p-4 bg-white shadow-lg flex items-center justify-center relative z-10">
         <h1 className="text-2xl font-bold text-indigo-700">📚 Chat with PDFs</h1>
-        <button
-          onClick={handleNewChat}
-          className="absolute right-4 top-1/2 -translate-y-1/2 px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-all shadow-md active:scale-95"
-        >
-          + New Chat
-        </button>
+        {/* + New Chat button removed per request */}
       </header>
 
-      {/* Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Responsive Layout */}
+      <div className="flex-1 flex overflow-hidden max-md:flex-col">
+        
         {/* Sidebar */}
-        <aside className="w-72 bg-white border-r border-gray-200 p-6 flex flex-col shadow-inner overflow-y-auto custom-scrollbar">
+        <aside className="
+          w-72 bg-white border-r border-gray-200 p-6 flex flex-col shadow-inner 
+          overflow-y-auto custom-scrollbar
+          max-md:w-full max-md:border-r-0 max-md:border-b max-md:p-4
+        ">
           {/* File Upload */}
           <div className="mb-6">
             <FileUpload
@@ -104,19 +102,10 @@ export default function App() {
                       className="text-gray-400 hover:text-red-500 transition-colors"
                       aria-label="Remove file"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
@@ -128,12 +117,10 @@ export default function App() {
 
         {/* Main Chat Area */}
         <main className="flex-1 flex flex-col bg-slate-50">
-          {/* Chat Window */}
           <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
             <ChatBox messages={messages} isLoading={isLoading} />
           </div>
 
-          {/* Input */}
           <div className="p-6 bg-white border-t border-gray-200 shadow-xl z-10">
             <SearchBar
               onSearch={addMessage}
@@ -147,7 +134,7 @@ export default function App() {
   );
 }
 
-// --- FileUpload Component ---
+/* ----------------- File Upload ----------------- */
 function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
@@ -155,11 +142,7 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
-    if (selectedFile) {
-      setMessage(`Selected: ${selectedFile.name}`);
-    } else {
-      setMessage("");
-    }
+    setMessage(selectedFile ? `Selected: ${selectedFile.name}` : "");
   };
 
   const handleUpload = async () => {
@@ -168,6 +151,7 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
       return;
     }
     setIsUploading(true);
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -185,13 +169,10 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
       setMessage(`✅ Uploaded: ${info.filename}`);
       onFileUploaded(info);
     } catch (err) {
-      console.error("Upload error:", err.response ? err.response.data : err.message);
-      setMessage(
-        "❌ Upload failed: " + (err.response?.data?.error || err.message)
-      );
+      setMessage("❌ Upload failed: " + (err.response?.data?.error || err.message));
     } finally {
       setIsUploading(false);
-      setFile(null); // Clear the file input
+      setFile(null);
     }
   };
 
@@ -204,7 +185,7 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
         type="file"
         accept="application/pdf"
         onChange={handleFileChange}
-        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 transition-colors"
+        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 file:py-2 file:px-4 file:rounded-md"
       />
       <button
         onClick={handleUpload}
@@ -222,7 +203,7 @@ function FileUpload({ onFileUploaded, setIsUploading, isUploading }) {
   );
 }
 
-// --- SearchBar Component ---
+/* ----------------- Search Bar ----------------- */
 function SearchBar({ onSearch, isLoading, setIsLoading }) {
   const [question, setQuestion] = useState("");
 
@@ -237,11 +218,10 @@ function SearchBar({ onSearch, isLoading, setIsLoading }) {
     try {
       const res = await axios.post(`${API_URL}/ask`, { question });
       onSearch({ sender: "ai", text: res.data.answer });
-    } catch (err) {
-      console.error("Search error:", err.response ? err.response.data : err.message);
+    } catch {
       onSearch({
         sender: "ai",
-        text: "Sorry, I couldn't get an answer. Please make sure a PDF is uploaded and the backend is running.",
+        text: "Sorry, I couldn't get an answer. Please upload a PDF first.",
       });
     } finally {
       setIsLoading(false);
@@ -254,43 +234,22 @@ function SearchBar({ onSearch, isLoading, setIsLoading }) {
         type="text"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        className="w-full px-5 py-3 pr-14 text-sm bg-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-        placeholder="Ask a question about your PDF..."
+        className="w-full px-5 py-3 pr-14 text-sm bg-gray-100 border border-gray-300 rounded-full"
+        placeholder="Ask a question..."
         disabled={isLoading}
       />
       <button
         type="submit"
         disabled={!question.trim() || isLoading}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed active:scale-95"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 text-white rounded-full"
       >
-        {isLoading ? (
-          <div className="flex space-x-1 items-center">
-            <div className="w-1.5 h-1.5 bg-white rounded-full dot-pulse"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-full dot-pulse"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-full dot-pulse"></div>
-          </div>
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-            />
-          </svg>
-        )}
+        →
       </button>
     </form>
   );
 }
 
-// --- ChatBox Component ---
+/* ----------------- Chat Box ----------------- */
 function ChatBox({ messages, isLoading }) {
   const chatEndRef = useRef(null);
 
@@ -304,6 +263,7 @@ function ChatBox({ messages, isLoading }) {
         <div className="flex justify-center items-center h-full">
           <p className="text-gray-400 text-lg italic text-center">
             Upload a PDF and ask a question to get started.
+            Refresh to new chat
           </p>
         </div>
       ) : (
@@ -315,8 +275,9 @@ function ChatBox({ messages, isLoading }) {
             } items-start message-fade-in`}
           >
             {msg.sender === "ai" && <span className="text-lg mr-2 mt-2">🤖</span>}
+
             <div
-              className={`p-4 rounded-3xl max-w-xl shadow-md transition-all ${
+              className={`p-4 rounded-3xl max-w-[85%] md:max-w-xl shadow-md transition-all ${
                 msg.sender === "user"
                   ? "bg-indigo-600 text-white rounded-br-none"
                   : "bg-white text-gray-900 border border-gray-100 rounded-bl-none"
@@ -324,14 +285,13 @@ function ChatBox({ messages, isLoading }) {
             >
               <div className="whitespace-pre-wrap">{msg.text}</div>
             </div>
-            {msg.sender === "user" && <span className="text-lg ml-2 mt-2"></span>}
           </div>
         ))
       )}
 
       {isLoading && (
         <div className="flex justify-start">
-          <div className="p-4 rounded-3xl max-w-xl shadow-md bg-white text-gray-900 border border-gray-100 rounded-bl-none">
+          <div className="p-4 rounded-3xl max-w-[85%] md:max-w-xl shadow-md bg-white text-gray-900 border border-gray-100 rounded-bl-none">
             <div className="flex space-x-1">
               <div className="w-2 h-2 bg-indigo-500 rounded-full dot-pulse"></div>
               <div className="w-2 h-2 bg-indigo-500 rounded-full dot-pulse"></div>
