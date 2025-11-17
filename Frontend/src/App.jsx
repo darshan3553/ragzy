@@ -8,15 +8,8 @@ export default function App() {
   // messages: start empty on every page load/refresh
   const [messages, setMessages] = useState([]);
 
-  // persisted uploaded files (still stored)
-  const [uploadedFiles, setUploadedFiles] = useState(() => {
-    try {
-      const raw = localStorage.getItem("ragzy_uploadedFiles");
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  // uploaded files: start empty on every page load/refresh
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,14 +17,6 @@ export default function App() {
   // Toast state
   const [toast, setToast] = useState(null); // {type, text}
   const toastTimerRef = useRef(null);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("ragzy_uploadedFiles", JSON.stringify(uploadedFiles));
-    } catch (e) {
-      console.error("persist files err", e);
-    }
-  }, [uploadedFiles]);
 
   useEffect(() => {
     if (!toast) return;
