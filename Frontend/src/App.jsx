@@ -5,16 +5,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 console.log("API_URL:", API_URL);
 
 export default function App() {
-  // persisted state (localStorage)
-  const [messages, setMessages] = useState(() => {
-    try {
-      const raw = localStorage.getItem("ragzy_messages");
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  // messages: start empty on every page load/refresh
+  const [messages, setMessages] = useState([]);
 
+  // persisted uploaded files (still stored)
   const [uploadedFiles, setUploadedFiles] = useState(() => {
     try {
       const raw = localStorage.getItem("ragzy_uploadedFiles");
@@ -30,14 +24,6 @@ export default function App() {
   // Toast state
   const [toast, setToast] = useState(null); // {type, text}
   const toastTimerRef = useRef(null);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("ragzy_messages", JSON.stringify(messages));
-    } catch (e) {
-      console.error("persist messages err", e);
-    }
-  }, [messages]);
 
   useEffect(() => {
     try {
